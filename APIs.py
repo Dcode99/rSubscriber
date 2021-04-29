@@ -33,4 +33,10 @@ else if path is "/reset":
   jsonString = json.dump(return_info)
   
   else if path is "/gethospital":
-    query = "SELECT max_capacity AS total_beds, (max_capacity-current_capacity) AS available_beds, zip_code FROM hospitals WHERE hospital_id is " + id
+    query = "SELECT max_capacity AS total_beds, (max_capacity-current_capacity)"
+    + " AS available_beds,"
+    + " zip_code FROM hospitals"
+    + " WHERE hospital_id is " + id
+    
+    return_info = mycol.find(myquery)
+    jsonString = json.dump(return_info)
