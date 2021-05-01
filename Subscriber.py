@@ -4,6 +4,9 @@ import sys
 import DBtools
 import json
 
+positive_count = 0
+negative_count = 0
+
 # Set the connection parameters to connect to rabbit-server1 on port 5672
 # on the / virtual host using the username "guest" and password "guest"
 
@@ -81,3 +84,6 @@ def case_count(status):
     else:
         return 0, 0
   
+ def reset_count():
+    positive_count = 0
+    negative_count = 0
