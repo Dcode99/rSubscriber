@@ -41,7 +41,18 @@ print(' [*] Waiting for logs. To exit press CTRL+C')
 
 def callback(ch, method, properties, body):
     print(" [x] %r:%r" % (method.routing_key, body))
-
+    # editing to get to utf-8
+    bodystr = body.decode('utf-8')
+    data = json.loads(bodystr)
+    
+    # split payloads
+    for payload in data:
+      fname = payload['first_name']
+      lname = payload['last_name']
+      mrn = payload['mrn']
+      zipcode = payload['zipcode']
+      patient_status = payload['patient_status_code']
+      
 
 channel.basic_consume(
     queue=queue_name, on_message_callback=callback, auto_ack=True)
