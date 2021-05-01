@@ -1,9 +1,8 @@
 #!/usr/bin/env python
 import pika
 import sys
-
-positive_count = 0
-negative_count = 0
+import DBtools
+import json
 
 # Set the connection parameters to connect to rabbit-server1 on port 5672
 # on the / virtual host using the username "guest" and password "guest"
