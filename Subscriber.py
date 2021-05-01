@@ -2,6 +2,9 @@
 import pika
 import sys
 
+positive_count = 0
+negative_count = 0
+
 # Set the connection parameters to connect to rabbit-server1 on port 5672
 # on the / virtual host using the username "guest" and password "guest"
 
@@ -53,9 +56,29 @@ def callback(ch, method, properties, body):
       zipcode = payload['zipcode']
       patient_status = payload['patient_status_code']
       
+    # count positive and negative cases
+    a, b = DBtools.case_count(patient_status)
+    positive count += a
+    negative_count += b
+      
+    # find closest open hospital, if needed
+    # CODE NEEDED
+    
+    # 
 
 channel.basic_consume(
     queue=queue_name, on_message_callback=callback, auto_ack=True)
 
 channel.start_consuming()
 
+def case_count(status):
+    # negative test + 1
+    if status == 1 or status == 4:
+        return 0, 1
+    # positive test + 1
+    elif status == 2 or status == 5 or status == 6:
+        return 1, 0
+    # else not tested
+    else:
+        return 0, 0
+  
