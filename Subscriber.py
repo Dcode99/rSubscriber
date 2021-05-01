@@ -45,6 +45,8 @@ print(' [*] Waiting for logs. To exit press CTRL+C')
 
 
 def callback(ch, method, properties, body):
+    global positive_count
+    global negative_count
     print(" [x] %r:%r" % (method.routing_key, body))
     # editing to get to utf-8
     bodystr = body.decode('utf-8')
@@ -59,14 +61,15 @@ def callback(ch, method, properties, body):
         patient_status = payload['patient_status_code']
 
     # count positive and negative cases
-    a, b = DBtools.case_count(patient_status)
+    a, b = DBtools.case_count()
     positive_count += a
     negative_count += b
 
-    # find closest open hospital, if needed
+    # find closest open hospital, if needed. increment beds occupied
     # CODE NEEDED
 
-    #
+    # assign patient in database
+    # CODE NEEDED
 
 
 channel.basic_consume(
@@ -88,5 +91,7 @@ def case_count(status):
 
 
 def reset_count():
+    global positive_count
+    global negative_count
     positive_count = 0
     negative_count = 0
