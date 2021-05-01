@@ -1,8 +1,8 @@
 import pymysql
-import mysql.connector
+# import mysql.connector
 
 
-def startDB():
+def restartDB():
     # create database connection
     dbIP = "127.0.0.1"
     dbUserName = "root"
@@ -20,9 +20,11 @@ def startDB():
         # Create a cursor object
         dbCursor = connection.cursor()
 
-        if resetDB() is True:
+        if resetDB(dbCursor) is True:
+            # create the database
             sqlQuery = "CREATE DATABASE patients"
             dbCursor.execte(sqlQuery)
+            # create a patient table
             sqlQuery = "CREATE TABLE patient(mrn varchar(255) PRIMARY_KEY, " \
                        "first_name varchar(31), " \
                        "last_name varchar(31), " \
@@ -33,10 +35,13 @@ def startDB():
     except Exception as e:
         print("Exception occurred:{}".format(e))
 
+    return dbCursor
 
-def resetDB():
+
+def resetDB(dbCursor):
     # function to reset the patient db using mysql
     reset = True
+    dbToReset = 'patients'
 
     # SQL Statement to delete a database
     sql = "DROP DATABASE " + dbToReset
