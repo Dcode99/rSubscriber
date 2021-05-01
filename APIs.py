@@ -2,6 +2,7 @@ import json
 import requests
 import pymongo
 import DBtools
+import subscriber
 import pymysql
 
 
@@ -31,7 +32,7 @@ dbCursor = DBtools.restartDB()
 path = getAPI()
 
 # getteam API
-if path is "/getteam":
+if path is "/api/getteam":
     status = 1
     team_info = {
         'team_name': 'Arnoldillo',
@@ -41,7 +42,7 @@ if path is "/getteam":
     jsonString = json.dumps(team_info)
 
 # reset API, needs to reset relational DB and CEP
-elif path is "/reset":
+elif path is "/api/reset":
     try:
         # Connecting the to collection
         dbCursor = DBtools.restartDB()
@@ -54,11 +55,18 @@ elif path is "/reset":
         }
     jsonString = json.dumps(return_info)
 
-elif path is "/gethospital":
+elif path is "/api/gethospital":
     query = "SELECT max_capacity AS total_beds," \
             " (max_capacity-current_capacity) AS available_beds," \
             " zip_code FROM hospitals" \
             " WHERE hospital_id is " + str(id)
 
     return_info = dbCursor.execute(query)
+    jsonString = json.dumps(return_info)
+
+elif path is "/api/testcount":
+    return_info = {
+        'positive_count': subscriber.positive_count,
+        'negative_count': subscriber.negative_count
+    }
     jsonString = json.dumps(return_info)
