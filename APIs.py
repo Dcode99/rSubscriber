@@ -36,7 +36,7 @@ if path is "/api/getteam":
     status = 1
     team_info = {
         'team_name': 'Arnoldillo',
-        'Team_member_sids': {912141777, 900000000},
+        'Team_member_sids': {912141777, 910823113},
         'app_status_code': status
     }
     jsonString = json.dumps(team_info)
