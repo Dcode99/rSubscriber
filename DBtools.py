@@ -4,10 +4,8 @@ import subscriber
 # import mysql.connector
 
 
-def restartDB():
-    # reset test counts to 0
-    subscriber.reset_count()
-
+# getting mysql cursor
+def get_dbCursor():
     # create database connection
     dbIP = "127.0.0.1"
     dbUserName = "root"
@@ -21,9 +19,18 @@ def restartDB():
     # define connection
     connection = pymysql.connect(host=dbIP, user=dbUserName, password=dbUserPassword,
                                  charset=charSet, cursorclass=cursorType)
+    # Create a cursor object
+    dbCursor = connection.cursor()
+    return dbCursor
+
+
+# restarting mysql database
+def restartDB():
+    # reset test counts to 0
+    subscriber.reset_count()
     try:
-        # Create a cursor object
-        dbCursor = connection.cursor()
+        # Get cursor object
+        dbCursor = get_dbCursor()
 
         if resetDB(dbCursor) is True:
             # create the database
@@ -46,6 +53,7 @@ def restartDB():
         print(ex)
 
 
+# checking if database is reset
 def resetDB(dbCursor):
     # function to reset the patient db using mysql
     reset = True
@@ -72,3 +80,13 @@ def resetDB(dbCursor):
             reset = False
 
     return reset
+
+
+# adding a patient to mysql database
+def add_patient(f_name, l_name, mrn, zip_code, status):
+    dbCursor = get_dbCursor()
+    query = "INSERT INTO patient" \
+            " VALUES " + f_name + " " + l_name \
+            + zip_code + " " + mrn + " " \
+            + status
+    dbCursor.execute(query)
