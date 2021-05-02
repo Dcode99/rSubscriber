@@ -1,5 +1,6 @@
 import pymysql
 import time
+import pymongo
 import subscriber
 # import mysql.connector
 
@@ -85,8 +86,37 @@ def resetDB(dbCursor):
 # adding a patient to mysql database
 def add_patient(f_name, l_name, mrn, zip_code, status):
     dbCursor = get_dbCursor()
-    query = "INSERT INTO patient" \
-            " VALUES " + f_name + " " + l_name \
-            + zip_code + " " + mrn + " " \
-            + status
+    query = "INSERT INTO patient VALUES " + f_name + " " \
+                                                     "" + l_name + zip_code + " " + mrn + " " + status + " -1"
     dbCursor.execute(query)
+
+
+def mongo_connect():
+    # Getting mongoDB setup
+    # TO DO: Add database URL
+    database_url = 'cluster0.icc7p.mongodb.net'
+    client = pymongo.MongoClient(database_url)
+
+    # Connecting to the database
+    mydb = client['hospitaldistances']
+
+    # Connecting the to collection
+    # TO DO: add collection name
+    collection_name = 'distance'
+    col = mydb[collection_name]
+
+
+def route_patient(zipcode, status):
+    # decide which (if any) hospital to send the patient to
+    col = pymongo.MongoClient('cluster0.icc7p.mongodb.net')['hospitaldistances']['distance']
+    assignment = 0
+    # send home
+    if status == 1 or status == 2 or status == 3 or status == 4:
+        return assignment
+    # send to a hospital (if 6, more strict)
+    elif status == 3 or status == 5:
+        # return closest zipcodes
+        doc = col.find().sort("distance", -1)
+    elif status == 6:
+        # return closest zipcodes
+        doc = col.find().sort("distance", -1)
