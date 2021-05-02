@@ -4,16 +4,17 @@ import sys
 import json
 import DBtools
 
-positive_count = 0
-negative_count = 0
+if __name__ == "__main__":
+    positive_count = 0
+    negative_count = 0
 
 
 def case_count(status):
     # negative test + 1
-    if status == 1 or status == 4:
+    if status == "1" or status == "4":
         return 0, 1
     # positive test + 1
-    elif status == 2 or status == 5 or status == 6:
+    elif status == "2" or status == "5" or status == "6":
         return 1, 0
     # else not tested
     else:
@@ -86,15 +87,15 @@ def callback(ch, method, properties, body):
         positive_count += a
         negative_count += b
 
-        # find closest open hospital, if needed. increment beds occupied
-        # CODE NEEDED
-
         # assign patient in mysql database
         DBtools.add_patient(f_name, l_name, mrn, zipcode, patient_status)
+
+        # find closest open hospital, if needed. increment beds occupied
+        # CODE NEEDED
+        # DBtools.route_patient(zipcode, patient_status)
 
 
 if __name__ == "__main__":
     channel.basic_consume(
         queue=queue_name, on_message_callback=callback, auto_ack=True)
-
     channel.start_consuming()
