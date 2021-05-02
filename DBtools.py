@@ -1,12 +1,15 @@
 import pymysql
 import time
 import pymongo
+import json
 import subscriber
+
+
 # import mysql.connector
 
 
 # getting mysql cursor
-def get_dbCursor():
+def get_dbConnection():
     # create database connection
     dbIP = "127.0.0.1"
     dbUserName = "root"
@@ -18,11 +21,33 @@ def get_dbCursor():
     cursorType = pymysql.cursors.DictCursor
 
     # define connection
-    connection = pymysql.connect(host=dbIP, user=dbUserName, password=dbUserPassword,
+    connection = pymysql.connect(host=dbIP, user=dbUserName, database="patients", password=dbUserPassword,
                                  charset=charSet, cursorclass=cursorType)
+    return connection
+
+
+# getting mysql cursor
+def get_dbCursor():
+    connection = get_dbConnection()
     # Create a cursor object
     dbCursor = connection.cursor()
     return dbCursor
+
+
+def startDB():
+    dbCursor = get_dbCursor()
+
+    sqlQuery = "CREATE DATABASE IF NOT EXISTS patients"
+    dbCursor.execute(sqlQuery)
+    # create a patient table
+    sqlQuery = "CREATE TABLE IF NOT EXISTS patient (mrn varchar(255), " \
+               "first_name varchar(32), " \
+               "last_name varchar(32), " \
+               "zip_code int, " \
+               "patient_status_code int, " \
+               "hospital_id int)"
+    dbCursor.execute(sqlQuery)
+    get_dbConnection().commit()
 
 
 # restarting mysql database
@@ -30,20 +55,23 @@ def restartDB():
     # reset test counts to 0
     subscriber.reset_count()
     try:
+
         # Get cursor object
         dbCursor = get_dbCursor()
-
-        if resetDB(dbCursor) is True:
-            # create the database
-            sqlQuery = "CREATE DATABASE patients"
-            dbCursor.execte(sqlQuery)
-            # create a patient table
-            sqlQuery = "CREATE TABLE patient(mrn varchar(255) PRIMARY_KEY, " \
-                       "first_name varchar(31), " \
-                       "last_name varchar(31), " \
-                       "zip_code int, " \
-                       "patient_status_code int, " \
-                       "hospital_id int"
+        resetDB(dbCursor)
+        # create the database
+        sqlQuery = "CREATE DATABASE patients"
+        dbCursor.execute(sqlQuery)
+        dbCursor = get_dbCursor()
+        # create a patient table
+        sqlQuery = "CREATE TABLE patient (mrn varchar(255), " \
+                   "first_name varchar(32), " \
+                   "last_name varchar(32), " \
+                   "zip_code int, " \
+                   "patient_status_code int, " \
+                   "hospital_id int)"
+        dbCursor.execute(sqlQuery)
+        get_dbConnection().commit()
         return dbCursor
     except Exception as e:
         print("Exception occurred:{}".format(e))
@@ -77,18 +105,19 @@ def resetDB(dbCursor):
     # Check if db exists
     for database in databaseCollection:
         # if the database still exists, it was not reset
-        if database == 'patients':
+        if database['Database'] == "patients":
             reset = False
-
     return reset
 
 
 # adding a patient to mysql database
 def add_patient(f_name, l_name, mrn, zip_code, status):
     dbCursor = get_dbCursor()
-    query = "INSERT INTO patient VALUES " + f_name + " " \
-                                                     "" + l_name + zip_code + " " + mrn + " " + status + " -1"
+    first_part = "(mrn, first_name, last_name, zip_code, patient_status_code, hospital_id)"
+    second_part = "(\"" + mrn + "\", \"" + f_name + "\", \"" + l_name + "\", " + zip_code + ", " + status + ", -1)"
+    query = "INSERT INTO patient " + first_part + " VALUES" + second_part
     dbCursor.execute(query)
+    get_dbConnection().commit()
 
 
 def mongo_connect():
