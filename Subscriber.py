@@ -7,6 +7,8 @@ import DBtools
 if __name__ == "__main__":
     positive_count = 0
     negative_count = 0
+    DBtools.startDB()
+    DBtools.restartDB()
 
 
 def case_count(status):
@@ -39,9 +41,9 @@ if __name__ == "__main__":
 
     credentials = pika.PlainCredentials(username, password)
     parameters = pika.ConnectionParameters(hostname,
-                                       5672,
-                                       virtualhost,
-                                       credentials)
+                                           5672,
+                                           virtualhost,
+                                           credentials)
 
     connection = pika.BlockingConnection(parameters)
 
