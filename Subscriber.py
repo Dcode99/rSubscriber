@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 import pika
 import sys
-import DBtools
 import json
+import DBtools
 
 positive_count = 0
 negative_count = 0
@@ -69,13 +69,13 @@ def callback(ch, method, properties, body):
     global negative_count
     print(" [x] %r:%r" % (method.routing_key, body))
     # editing to get to utf-8
-    bodystr = body.decode('utf-8')
-    data = json.loads(bodystr)
+    body_str = body.decode('utf-8')
+    data = json.loads(body_str)
 
     # split payloads
     for payload in data:
-        fname = payload['first_name']
-        lname = payload['last_name']
+        f_name = payload['first_name']
+        l_name = payload['last_name']
         mrn = payload['mrn']
         zipcode = payload['zip_code']
         patient_status = payload['patient_status_code']
@@ -88,8 +88,8 @@ def callback(ch, method, properties, body):
         # find closest open hospital, if needed. increment beds occupied
         # CODE NEEDED
 
-        # assign patient in database
-        # CODE NEEDED
+        # assign patient in mysql database
+        DBtools.add_patient(f_name, l_name, mrn, zipcode, patient_status)
 
 
 channel.basic_consume(
