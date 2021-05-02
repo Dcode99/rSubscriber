@@ -1,8 +1,6 @@
 import json
 import requests
-import pymongo
 import pymysql
-
 import subscriber
 
 
@@ -11,24 +9,9 @@ def getAPI():
     return resp.json()
 
 
-def mongo_connect():
-    # Getting mongoDB setup
-    # TO DO: Add database URL
-    database_url = '127.0.0.1'
-    client = pymongo.MongoClient(database_url)
-
-    # Connecting to the database
-    mydb = client['hospitals']
-
-    # Connecting the to collection
-    # TO DO: add collection name
-    collection_name = 'hospital'
-    col = mydb[collection_name]
-
-
 def run_apis():
     # restart mysql database and set cursor
-    dbCursor = DBtools.restartDB()
+    dbCursor = subscriber.DBtools.restartDB()
     # get API
     path = getAPI()
     jsonString = {}
@@ -46,7 +29,7 @@ def run_apis():
     elif path == "/api/reset":
         try:
             # Connecting the to collection
-            dbCursor = DBtools.restartDB()
+            dbCursor = subscriber.DBtools.restartDB()
             return_info = {
                 'reset_status_code': 1
             }
@@ -84,3 +67,6 @@ def run_apis():
         return_info = {}
         jsonString = json.dumps(return_info)
     return jsonString
+
+
+print("Bottom of APIs.py")
