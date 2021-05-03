@@ -1,105 +1,234 @@
-#!/usr/bin/env python
-import pika
-import sys
+import pymysql
+import time
+import pymongo
 import json
-import DBtools
-
-if __name__ == "__main__":
-    positive_count = 0
-    negative_count = 0
-    DBtools.startDB()
-    DBtools.restartDB()
-    DBtools.startHospitalDB()
-    DBtools.reset_hospital_db()
+import subscriber
 
 
-def case_count(status):
-    # negative test + 1
-    if status == "1" or status == "4":
-        return 0, 1
-    # positive test + 1
-    elif status == "2" or status == "5" or status == "6":
-        return 1, 0
-    # else not tested
+# import mysql.connector
+# getting mysql cursor
+def get_db_hospital_connection():
+    # create database connection
+    dbIP = "127.0.0.1"
+    dbUserName = "root"
+    dbUserPassword = "reallysecurepwd"
+
+    db = "rhospitalpatients"
+    charSet = "utf8mb4"  # Character set
+
+    cursorType = pymysql.cursors.DictCursor
+
+    # define connection
+    connection = pymysql.connect(host=dbIP, user=dbUserName, database=db, password=dbUserPassword,
+                                 charset=charSet, cursorclass=cursorType)
+    return connection
+
+
+# getting mysql cursor
+def get_db_hospital_cursor():
+    connection = get_db_hospital_connection()
+    # Create a cursor object
+    dbCursor = connection.cursor()
+    return dbCursor
+
+
+def startHospitalDB():
+    # start mysql hospital database
+    dbCursor = get_db_hospital_cursor()
+
+    sqlQuery = "CREATE DATABASE IF NOT EXISTS rhospitalpatients"
+    dbCursor.execute(sqlQuery)
+    # create a current_capacity column if needed
+    # sqlQuery = "ALTER TABLE hospitals ADD COLUMN current_capacity int"
+    # dbCursor.execute(sqlQuery)
+    get_db_hospital_connection().commit()
+
+
+# reset current capacity of all hospitals
+def reset_hospital_db():
+    dbHospitalCursor = get_db_hospital_cursor()
+    sql_delete = "UPDATE hospitals SET current_capacity = 0"
+    dbHospitalCursor.execute(sql_delete)
+    get_db_hospital_connection().commit()
+
+
+# getting mysql cursor
+def get_dbConnection():
+    # create database connection
+    dbIP = "127.0.0.1"
+    dbUserName = "root"
+    dbUserPassword = "reallysecurepwd"
+
+    db = "patients"
+    charSet = "utf8mb4"  # Character set
+
+    cursorType = pymysql.cursors.DictCursor
+
+    # define connection
+    connection = pymysql.connect(host=dbIP, user=dbUserName, database=db, password=dbUserPassword,
+                                 charset=charSet, cursorclass=cursorType)
+    return connection
+
+
+# getting mysql cursor
+def get_dbCursor():
+    connection = get_dbConnection()
+    # Create a cursor object
+    dbCursor = connection.cursor()
+    return dbCursor
+
+
+def startDB():
+    dbCursor = get_dbCursor()
+
+    sqlQuery = "CREATE DATABASE IF NOT EXISTS patients"
+    dbCursor.execute(sqlQuery)
+    # create a patient table
+    sqlQuery = "CREATE TABLE IF NOT EXISTS patient (mrn varchar(255), " \
+               "first_name varchar(32), " \
+               "last_name varchar(32), " \
+               "zip_code int, " \
+               "patient_status_code int, " \
+               "hospital_id int)"
+    dbCursor.execute(sqlQuery)
+    get_dbConnection().commit()
+
+
+# restarting mysql database
+def restartDB():
+    # reset test counts to 0
+    subscriber.reset_count()
+    try:
+
+        # Get cursor object
+        dbCursor = get_dbCursor()
+        resetDB(dbCursor)
+        # create the database
+        sqlQuery = "CREATE DATABASE patients"
+        dbCursor.execute(sqlQuery)
+        dbCursor = get_dbCursor()
+        # create a patient table
+        sqlQuery = "CREATE TABLE patient (mrn varchar(255), " \
+                   "first_name varchar(32), " \
+                   "last_name varchar(32), " \
+                   "zip_code int, " \
+                   "patient_status_code int, " \
+                   "hospital_id int)"
+        dbCursor.execute(sqlQuery)
+        get_dbConnection().commit()
+        return dbCursor
+    except Exception as e:
+        print("Exception occurred:{}".format(e))
+    try:
+        while True:
+            time.sleep(5000)
+    except Exception as ex:
+        print(ex)
+
+
+# checking if database is reset
+def resetDB(dbCursor):
+    # function to reset the patient db using mysql
+    reset = True
+    dbToReset = 'patients'
+
+    # SQL Statement to delete a database
+    sql = "DROP DATABASE " + dbToReset
+
+    # Execute the create database SQL statement through the cursor instance
+    dbCursor.execute(sql)
+
+    # SQL query string
+    sqlQuery = "SHOW DATABASES"
+
+    # Execute the sqlQuery
+    dbCursor.execute(sqlQuery)
+
+    # Fetch all the rows
+    databaseCollection = dbCursor.fetchall()
+    # Check if db exists
+    for database in databaseCollection:
+        # if the database still exists, it was not reset
+        if database['Database'] == "patients":
+            reset = False
+    return reset
+
+
+# adding a patient to mysql database
+def add_patient(f_name, l_name, mrn, zip_code, status):
+    dbCursor = get_dbCursor()
+    first_part = "(mrn, first_name, last_name, zip_code, patient_status_code, hospital_id)"
+    second_part = "(\"" + mrn + "\", \"" + f_name + "\", \"" + l_name + "\", " + zip_code + ", " + status + ", -1)"
+    query = "INSERT INTO patient " + first_part + " VALUES" + second_part
+    dbCursor.execute(query)
+    get_dbConnection().commit()
+
+
+def mongo_connect():
+    # Getting mongoDB setup
+    # TO DO: Add database URL
+    database_url = 'cluster0.icc7p.mongodb.net'
+    client = pymongo.MongoClient(database_url)
+
+    # Connecting to the database
+    mydb = client['hospitaldistances']
+
+    # Connecting the to collection
+    # TO DO: add collection name
+    collection_name = 'distance'
+    col = mydb[collection_name]
+
+
+def route_patient(zipcode, status):
+    # decide which (if any) hospital to send the patient to
+    col = pymongo.MongoClient('cluster0.icc7p.mongodb.net')['hospitaldistances']['distance']
+    assignment = 0
+    print(status)
+    # send home
+    if status == "1" or status == "2" or status == "3" or status == "4":
+        return assignment
+    # send to a hospital (if 6, more strict)
+    elif status == "3" or status == "5":
+        query = {"zip_from": zipcode}
+        # return closest zipcodes in descending order
+        doc = col.find(query).sort("distance", -1)
+        for payload in doc:
+            zip_to = payload['zip_to']
+            print(zip_to)
+            check_zip(zip_to, status)
+    elif status == "6":
+        query = {"zip_from": zipcode}
+        # return closest zipcodes in descending order
+        doc = col.find(query).sort("distance", -1)
+        for payload in doc:
+            zip_to = payload['zip_to']
+            print(zip_to)
+            check_zip(zip_to, status)
+
+
+def check_zip(zipcode, status):
+    # check hospitals in zip_code for open beds
+    db_hospital_cursor = get_db_hospital_cursor()
+    sql_query_1 = "SELECT hospital_id FROM distance WHERE zip_code = " + zipcode
+    sql_query_2 = " AND (BEDS-current_capacity) > 0"
+    sql_optional = " AND trauma != \"Not Available\""
+    if status == "6":
+        sql_rows = db_hospital_cursor.execute(sql_query_1 + sql_query_2 + sql_optional)
+        # if empty, return -1
+        if sql_rows == 0:
+            return -1
+        # otherwise return hospital_id to send patient
+        else:
+            sql_response = db_hospital_cursor.fetchone()
+            print(sql_response)
+            return sql_response['_id']
     else:
-        return 0, 0
-
-
-def reset_count():
-    global positive_count
-    global negative_count
-    positive_count = 0
-    negative_count = 0
-
-
-if __name__ == "__main__":
-    # Set the connection parameters to connect to rabbit-server1 on port 5672
-    # on the / virtual host using the username "guest" and password "guest"
-
-    username = 'student'
-    password = 'student01'
-    hostname = '128.163.202.50'
-    virtualhost = '13'
-
-    credentials = pika.PlainCredentials(username, password)
-    parameters = pika.ConnectionParameters(hostname,
-                                           5672,
-                                           virtualhost,
-                                           credentials)
-
-    connection = pika.BlockingConnection(parameters)
-
-    channel = connection.channel()
-
-    exchange_name = 'patient_data'
-    channel.exchange_declare(exchange=exchange_name, exchange_type='topic')
-
-    result = channel.queue_declare('', exclusive=True)
-    queue_name = result.method.queue
-
-    binding_keys = "#"
-
-    if not binding_keys:
-        sys.stderr.write("Usage: %s [binding_key]...\n" % sys.argv[0])
-        sys.exit(1)
-
-    for binding_key in binding_keys:
-        channel.queue_bind(
-            exchange=exchange_name, queue=queue_name, routing_key=binding_key)
-
-    print(' [*] Waiting for logs. To exit press CTRL+C')
-
-
-def callback(ch, method, properties, body):
-    global positive_count
-    global negative_count
-    print(" [x] %r:%r" % (method.routing_key, body))
-    # editing to get to utf-8
-    body_str = body.decode('utf-8')
-    data = json.loads(body_str)
-
-    # split payloads
-    for payload in data:
-        f_name = payload['first_name']
-        l_name = payload['last_name']
-        mrn = payload['mrn']
-        zipcode = payload['zip_code']
-        patient_status = payload['patient_status_code']
-
-        # count positive and negative cases
-        a, b = case_count(patient_status)
-        positive_count += a
-        negative_count += b
-
-        # assign patient in mysql database
-        DBtools.add_patient(f_name, l_name, mrn, zipcode, patient_status)
-
-        # find closest open hospital, if needed. increment beds occupied
-        # CODE NEEDED
-        DBtools.route_patient(zipcode, patient_status)
-
-
-if __name__ == "__main__":
-    channel.basic_consume(
-        queue=queue_name, on_message_callback=callback, auto_ack=True)
-    channel.start_consuming()
+        sql_rows = db_hospital_cursor.execute(sql_query_1 + sql_query_2)
+        # if empty, return -1
+        if sql_rows == 0:
+            return -1
+        # otherwise return hospital_id to send patient
+        else:
+            sql_response = db_hospital_cursor.fetchone()
+            print(sql_response)
+            return sql_response['_id']
