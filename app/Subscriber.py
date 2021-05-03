@@ -6,7 +6,7 @@ import subscriber
 
 
 # import mysql.connector
-# getting mysql cursor
+# getting hospital connection
 def get_db_hospital_connection():
     # create database connection
     dbIP = "127.0.0.1"
@@ -24,7 +24,7 @@ def get_db_hospital_connection():
     return connection
 
 
-# getting mysql cursor
+# getting hospital mysql cursor
 def get_db_hospital_cursor():
     connection = get_db_hospital_connection()
     # Create a cursor object
@@ -52,7 +52,7 @@ def reset_hospital_db():
     get_db_hospital_connection().commit()
 
 
-# getting mysql cursor
+# getting patient mysql connection
 def get_dbConnection():
     # create database connection
     dbIP = "127.0.0.1"
@@ -70,7 +70,7 @@ def get_dbConnection():
     return connection
 
 
-# getting mysql cursor
+# getting patient mysql cursor
 def get_dbCursor():
     connection = get_dbConnection()
     # Create a cursor object
@@ -78,6 +78,7 @@ def get_dbCursor():
     return dbCursor
 
 
+# start running the patient database
 def startDB():
     dbCursor = get_dbCursor()
 
@@ -94,7 +95,7 @@ def startDB():
     get_dbConnection().commit()
 
 
-# restarting mysql database
+# restarting patient mysql database
 def restartDB():
     # reset test counts to 0
     subscriber.reset_count()
