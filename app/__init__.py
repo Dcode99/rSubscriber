@@ -1,5 +1,5 @@
 from flask import Flask, render_template
-from flask_sqlalchemy import SQLAlchemy
+import dbtools
 
 
 #Application object
@@ -9,7 +9,7 @@ app = Flask(__name__)
 app.config.from_object('config')
 
 #SQL Alchemy database object
-db = SQLAlchemy(app)
+db = dbtools.get_dbConnection()
 
 
 @app.errorhandler(404)
@@ -20,4 +20,4 @@ from app.mod_auth.controllers import mod_auth as auth_module
 
 app.register_blueprint(auth_module)
 
-db.create_all()
+#db.create_all()
