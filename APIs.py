@@ -1,6 +1,5 @@
 import json
 import requests
-import pymysql
 import subscriber
 
 
@@ -9,22 +8,21 @@ def getAPI():
     return resp.json()
 
 
-def run_apis():
-    # restart mysql database and set cursor
-    dbCursor = subscriber.DBtools.restartDB()
+def run_apis(path):
+    dbHospitalCursor = subscriber.DBtools.get_db_hospital_cursor()
+    dbCursor = subscriber.DBtools.get_dbCursor()
     # get API
-    path = getAPI()
+    # path = getAPI()
     jsonString = {}
     # getteam API
     if path == "/api/getteam":
         status = 1
         team_info = {
             'team_name': 'Arnoldillo',
-            'Team_member_sids': {912141777, 910823113},
-            'app_status_code': status
+            'Team_member_sids': str({912141777, 910823113}),
+            'app_status_code': str(status)
         }
         jsonString = json.dumps(team_info)
-
     # reset API, needs to reset relational DB and CEP
     elif path == "/api/reset":
         try:
@@ -45,13 +43,13 @@ def run_apis():
                 " zip_code FROM hospitals" \
                 " WHERE hospital_id is " + str(hospital_id)
 
-        return_info = dbCursor.execute(query)
+        dbHospitalCursor.execute(query)
+        return_info = dbHospitalCursor.fetchone()
         jsonString = json.dumps(return_info)
-
     elif path == "/api/testcount":
         return_info = {
-            'positive_count': subscriber.positive_count,
-            'negative_count': subscriber.negative_count
+            'positive_count': str(subscriber.get_positive_count()),
+            'negative_count': str(subscriber.get_negative_count())
         }
         jsonString = json.dumps(return_info)
     elif path == "/api/zipalertlist":
@@ -63,10 +61,10 @@ def run_apis():
         return_info = {}
         jsonString = json.dumps(return_info)
     elif path.split("/")[1] == "getpatient":
-        # TODO
-        return_info = {}
+        mrn = path.split("/")[2]
+        query = "SELECT mrn, hospital_id, " \
+                " WHERE mrn is " + str(mrn)
+        dbCursor.execute(query)
+        return_info = dbCursor.fetchone()
         jsonString = json.dumps(return_info)
     return jsonString
-
-
-print("Bottom of APIs.py")
