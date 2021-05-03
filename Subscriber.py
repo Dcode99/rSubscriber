@@ -2,13 +2,28 @@
 import pika
 import sys
 import json
+
+import APIs
 import DBtools
 
+positive_count = 0
+negative_count = 0
+
 if __name__ == "__main__":
-    positive_count = 0
-    negative_count = 0
     DBtools.startDB()
     DBtools.restartDB()
+    DBtools.startHospitalDB()
+    DBtools.reset_hospital_db()
+
+
+def get_positive_count():
+    global positive_count
+    return positive_count
+
+
+def get_negative_count():
+    global negative_count
+    return negative_count
 
 
 def case_count(status):
@@ -88,7 +103,6 @@ def callback(ch, method, properties, body):
         a, b = case_count(patient_status)
         positive_count += a
         negative_count += b
-
         # assign patient in mysql database
         DBtools.add_patient(f_name, l_name, mrn, zipcode, patient_status)
 
