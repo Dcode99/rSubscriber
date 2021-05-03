@@ -1,6 +1,6 @@
 import json
 import requests
-import subscriber
+from app import subscriber
 
 
 def getAPI():
