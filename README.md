@@ -19,6 +19,9 @@ Dillon:
   
   
 Nathan:
+  Wrote interactions with MongoDB server (deprecated); 
+  Set up web server using Flask; 
+  Tested web server and integrated with existing project
 
 
 Project design:
