@@ -1,0 +1,11 @@
+import pandas as pd
+
+
+# one-time function to get hospital data from CSV
+def read_hospitals():
+  # read data from CSV path
+  data = pd.read_csv (r'\Downloads\Hospitals.csv')   
+  # parse data into columns needed
+  df = pd.DataFrame(data, columns= ['ID','ZIP','BEDS','TRAUMA'])
+  return df
+  
