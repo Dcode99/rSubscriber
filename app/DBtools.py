@@ -2,6 +2,7 @@ import pymysql
 import time
 import pymongo
 import json
+import pandas as pd
 import subscriber
 
 
@@ -181,33 +182,32 @@ def mongo_connect():
 
 def route_patient(zipcode, status):
     # decide which (if any) hospital to send the patient to
-    col = pymongo.MongoClient('cluster0.icc7p.mongodb.net')['hospitaldistances']['distance']
     assignment = 0
-    print(status)
     # send home
     if status == "1" or status == "2" or status == "3" or status == "4":
         return assignment
     # send to a hospital (if 6, more strict)
     elif status == "3" or status == "5":
-        query = {"zip_from": zipcode}
-        # return closest zipcodes in descending order
-        doc = col.find(query).sort("distance", -1)
-        for payload in doc:
+        # return closest zipcodes in ascending order with matching zipcode
+        pdf = df.loc[df['zip_to']==zipcode]
+        pdf = pdf.sort_values(by='distance')
+        for payload in pdf:
             zip_to = payload['zip_to']
             print(zip_to)
             check_zip(zip_to, status)
     elif status == "6":
-        query = {"zip_from": zipcode}
-        # return closest zipcodes in descending order
-        doc = col.find(query).sort("distance", -1)
-        for payload in doc:
+        # return closest zipcodes in ascending order
+        pdf = df.loc[df['zip_to']==zipcode]
+        pdf = pdf.sort_values(by='distance')
+        for payload in pdf:
             zip_to = payload['zip_to']
-            print(zip_to)
+            # test print
+            # print(zip_to)
             check_zip(zip_to, status)
 
 
 def check_zip(zipcode, status):
-    # check hospitals in zip_code for open beds
+    # check hospitals in given zip_code for open beds
     db_hospital_cursor = get_db_hospital_cursor()
     sql_query_1 = "SELECT hospital_id FROM distance WHERE zip_code = " + zipcode
     sql_query_2 = " AND (BEDS-current_capacity) > 0"
