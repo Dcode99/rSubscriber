@@ -9,3 +9,11 @@ def read_hospitals():
   df = pd.DataFrame(data, columns= ['ID','ZIP','BEDS','TRAUMA'])
   return df
   
+  
+# one-time function to get zip_code data from CSV
+def read_distance():
+  # read data from CSV path
+  data = pd.read_csv (r'\Downloads\kyzipdistance.csv')   
+  # parse data into columns needed
+  df = pd.DataFrame(data, columns= ['zip_to','zip_from','distance'])
+  return df
