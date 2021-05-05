@@ -193,7 +193,8 @@ def route_patient(zipcode, status):
         pdf = pdf.sort_values(by='distance')
         for payload in pdf:
             zip_to = payload['zip_to']
-            print(zip_to)
+            # test print
+            # print(zip_to)
             check_zip(zip_to, status)
     elif status == "6":
         # return closest zipcodes in ascending order
