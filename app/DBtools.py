@@ -180,7 +180,7 @@ def mongo_connect():
     col = mydb[collection_name]
 
 
-def route_patient(zipcode, status):
+def route_patient(zipcode, status):   
     # decide which (if any) hospital to send the patient to
     assignment = 0
     # send home
@@ -188,6 +188,8 @@ def route_patient(zipcode, status):
         return assignment
     # send to a hospital (if 6, more strict)
     elif status == "3" or status == "5":
+        # get zipcode distances
+        df = parsing_csv.getdf()
         # return closest zipcodes in ascending order with matching zipcode
         pdf = df.loc[df['zip_to']==zipcode]
         pdf = pdf.sort_values(by='distance')
@@ -197,6 +199,8 @@ def route_patient(zipcode, status):
             # print(zip_to)
             check_zip(zip_to, status)
     elif status == "6":
+        # get zipcode distances
+        df = parsing_csv.getdf()
         # return closest zipcodes in ascending order
         pdf = df.loc[df['zip_to']==zipcode]
         pdf = pdf.sort_values(by='distance')
