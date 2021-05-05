@@ -4,7 +4,11 @@ import pymongo
 import json
 import pandas as pd
 import subscriber
+import csv_parsing
 
+# load zip_code distances
+def load_csv():
+    df = csv_parsing.zip_distances()
 
 # import mysql.connector
 # getting mysql cursor
