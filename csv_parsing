@@ -17,3 +17,17 @@ def read_distance():
   # parse data into columns needed
   df = pd.DataFrame(data, columns= ['zip_to','zip_from','distance'])
   return df
+
+
+class zip_distances:
+  df = read_distance()
+
+
+  # set new datafile
+  def set_csv(new_df):
+    df = new_df
+  
+
+  # return datafile
+  def get_csv():
+    return df
