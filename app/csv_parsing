@@ -24,10 +24,10 @@ class zip_distances:
 
 
   # set new datafile
-  def set_csv(new_df):
+  def setdf(new_df):
     df = new_df
   
 
   # return datafile
-  def get_csv():
+  def getdf():
     return df
