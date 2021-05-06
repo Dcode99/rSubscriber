@@ -43,7 +43,7 @@ Project design:
   
   We did not get the chance to implement this yet, we have been having difficulties on other parts and PySiddhi did not seem to be a viable choice like we expected to use.
   
-  MySQL (PyMYSQL): A relational database will be used to keep track of hospital capacity and patient status. This was chosen for familiarity and ease of use, and because it was a language we could use to query specific information with sorting.
+  MySQL (PyMYSQL): A relational database will be used to keep track of hospital capacity and patient status. This was chosen for familiarity and ease of use due to extensive documentation, and because it was a language we could use to query specific information with sorting.
   
   Entity: Patient
     
