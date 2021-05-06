@@ -6,7 +6,7 @@ Individual contributions:
 
 Both:
   Created database designs and determined attributes;
-  Imported CSV files;
+  Imported CSV files to database websites;
   Meet together to go over code and discuss planning
   
 Dillon:
