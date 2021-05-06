@@ -38,10 +38,12 @@ Project design:
   
   atlas: reallysecurepwd
   
-  A complex event processor will be used to handle the event streams containing patient records.
-  This CEP will be able to detect activity over time intervals to determine if there is an alert state. It will be used to handle the real time reporting APIs.
+  We planned to use a complex event processor (PySiddhi) to handle the event streams containing patient records.
+  This CEP would be able to detect activity over time intervals to determine if there is an alert state. It would be used to handle the real time reporting APIs.
   
-  MySQL: A relational database will be used to keep track of hospital capacity and patient status.
+  We did not get the chance to implement this yet, we have been having difficulties on other parts and PySiddhi did not seem to be a viable choice like we expected to use.
+  
+  MySQL (PyMYSQL): A relational database will be used to keep track of hospital capacity and patient status. This was chosen for familiarity and ease of use, and because it was a language we could use to query specific information with sorting.
   
   Entity: Patient
     
