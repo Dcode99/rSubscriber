@@ -16,6 +16,7 @@ Dillon:
   implemented webserver.py to start the server (not used anymore);
   created APIhelper functions;
   set up resets and creation of mysql databases;
+  switched mongo implementation of zip code distances to use the csv file instead
   
   
 Nathan:
@@ -27,9 +28,11 @@ Nathan:
 Project design:
   Language: Python
   
-  MongoDB: A graph database will be used to store precomputed distances from zip codes to treatment facilities.
+  We originally planned to use MongoDB: A graph database will be used to store precomputed distances from zip codes to treatment facilities.
   Given a patient zip code, map to the nearest hospitals with open beds. A node is created for each zip code containing at least one hospital.
   Node values: distance, zip_to, zip_from
+  
+  Instead of this, we moved to using the csv file as a table, and querying on that using pandas whenever we needed to get the zipcode distance to a node. To save time on queries, this could be implemented by precomputing distances and creating a table for each zipcode that lists the distance to every other zipcode, but this would take up more memory.
   
   A query to this database would include the current zipcode and return the list of hopsital_ids in order of least to greatest distance.
   
