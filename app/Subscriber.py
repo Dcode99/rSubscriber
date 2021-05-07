@@ -4,87 +4,104 @@ import sys
 import json
 import DBtools
 
-positive_count = 0
-negative_count = 0
 
-if __name__ == "__main__":
-    DBtools.startDB()
-    DBtools.restartDB()
-    DBtools.startHospitalDB()
-    DBtools.reset_hospital_db()
-    DBtools.load_csv()
+def increment_positive():
+    f = open("counts.txt", "r")
+    negative_count = int(f.readline())
+    positive_count = int(f.readline())
+    f.close()
+    f = open("counts.txt", "w")
+    f.write(str(negative_count + 1) + "\n" + str(positive_count))
+    f.close()
+
+
+def increment_negative():
+    f = open("counts.txt", "r")
+    negative_count = int(f.readline())
+    positive_count = int(f.readline())
+    f.close()
+    f = open("counts.txt", "w")
+    f.write(str(negative_count) + "\n" + str(positive_count + 1))
+    f.close()
 
 
 def get_positive_count():
-    global positive_count
+    f = open("counts.txt", "r")
+    negative_count = int(f.readline())
+    positive_count = int(f.readline())
+    f.close()
     return positive_count
 
 
 def get_negative_count():
-    global negative_count
+    f = open("counts.txt", "r")
+    negative_count = int(f.readline())
+    positive_count = int(f.readline())
+    f.close()
     return negative_count
+
+
+def reset_count():
+    f = open("counts.txt", "w")
+    f.write("0\n0")
+    f.close()
+
+
+DBtools.startDB()
+DBtools.restartDB()
+DBtools.startHospitalDB()
+DBtools.reset_hospital_db()
+reset_count()
 
 
 def case_count(status):
     # negative test + 1
     if status == "1" or status == "4":
-        return 0, 1
+        increment_negative()
     # positive test + 1
     elif status == "2" or status == "5" or status == "6":
-        return 1, 0
+        increment_positive()
     # else not tested
-    else:
-        return 0, 0
 
 
-def reset_count():
-    global positive_count
-    global negative_count
-    positive_count = 0
-    negative_count = 0
+# Set the connection parameters to connect to rabbit-server1 on port 5672
+# on the / virtual host using the username "guest" and password "guest"
 
+username = 'student'
+password = 'student01'
+hostname = '128.163.202.50'
+virtualhost = '13'
 
-if __name__ == "__main__":
-    # Set the connection parameters to connect to rabbit-server1 on port 5672
-    # on the / virtual host using the username "guest" and password "guest"
+credentials = pika.PlainCredentials(username, password)
+parameters = pika.ConnectionParameters(hostname,
+                                       5672,
+                                       virtualhost,
+                                       credentials)
 
-    username = 'student'
-    password = 'student01'
-    hostname = '128.163.202.50'
-    virtualhost = '13'
+connection = pika.BlockingConnection(parameters)
 
-    credentials = pika.PlainCredentials(username, password)
-    parameters = pika.ConnectionParameters(hostname,
-                                           5672,
-                                           virtualhost,
-                                           credentials)
+channel = connection.channel()
 
-    connection = pika.BlockingConnection(parameters)
+exchange_name = 'patient_data'
+channel.exchange_declare(exchange=exchange_name, exchange_type='topic')
 
-    channel = connection.channel()
+result = channel.queue_declare('', exclusive=True)
+queue_name = result.method.queue
 
-    exchange_name = 'patient_data'
-    channel.exchange_declare(exchange=exchange_name, exchange_type='topic')
+binding_keys = "#"
 
-    result = channel.queue_declare('', exclusive=True)
-    queue_name = result.method.queue
+if not binding_keys:
+    sys.stderr.write("Usage: %s [binding_key]...\n" % sys.argv[0])
+    sys.exit(1)
 
-    binding_keys = "#"
+for binding_key in binding_keys:
+    channel.queue_bind(
+        exchange=exchange_name, queue=queue_name, routing_key=binding_key)
 
-    if not binding_keys:
-        sys.stderr.write("Usage: %s [binding_key]...\n" % sys.argv[0])
-        sys.exit(1)
-
-    for binding_key in binding_keys:
-        channel.queue_bind(
-            exchange=exchange_name, queue=queue_name, routing_key=binding_key)
-
-    print(' [*] Waiting for logs. To exit press CTRL+C')
+print(' [*] Waiting for logs. To exit press CTRL+C')
 
 
 def callback(ch, method, properties, body):
-    global positive_count
-    global negative_count
     print(" [x] %r:%r" % (method.routing_key, body))
     # editing to get to utf-8
     body_str = body.decode('utf-8')
@@ -99,18 +116,16 @@ def callback(ch, method, properties, body):
         patient_status = payload['patient_status_code']
 
         # count positive and negative cases
-        a, b = case_count(patient_status)
-        positive_count += a
-        negative_count += b
+        case_count(patient_status)
         # assign patient in mysql database
         DBtools.add_patient(f_name, l_name, mrn, zipcode, patient_status)
 
         # find closest open hospital, if needed. increment beds occupied
         # CODE NEEDED
-        # DBtools.route_patient(zipcode, patient_status)
+        DBtools.route_patient(zipcode, patient_status)
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     channel.basic_consume(
         queue=queue_name, on_message_callback=callback, auto_ack=True)
     channel.start_consuming()
