@@ -15,10 +15,11 @@ def index():
 
 
 @app.route('/api/reset/')
-def api():
+def reset():
     try:
         # Connecting the to collection
         dbCursor = subscriber.DBtools.restartDB()
+        subscriber.reset_count()
         return_info = {
             'reset_status_code': 1
         }
@@ -45,8 +46,7 @@ def getteam():
 @app.route('/api/getpatient/<mrn>/')
 def getpatient(mrn):
     dbCursor = subscriber.DBtools.get_dbCursor()
-    query = "SELECT mrn, hospital_id, " \
-            " WHERE mrn is " + str(mrn)
+    query = "SELECT mrn, hospital_id FROM patient WHERE mrn = \"" + str(mrn) + "\""
     dbCursor.execute(query)
     return_info = dbCursor.fetchone()
     jsonString = json.dumps(return_info)
@@ -68,11 +68,12 @@ def gethospital(hospital_id):
 
 @app.route('/api/testcount/')
 def testcount():
-    return_info = {
+    jsonString = {
         'positive_count': str(subscriber.get_positive_count()),
         'negative_count': str(subscriber.get_negative_count())
     }
-    return return_info
+    print('')
+    return jsonString
 
 
 @app.route('/api/zipalertlist/')
