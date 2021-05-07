@@ -1,14 +1,13 @@
 import pymysql
 import time
 import pymongo
-import json
-import pandas as pd
-import subscriber
 import csv_parsing
+
 
 # load zip_code distances
 def load_csv():
     df = csv_parsing.zip_distances()
+
 
 # import mysql.connector
 # getting mysql cursor
@@ -57,7 +56,7 @@ def reset_hospital_db():
     get_db_hospital_connection().commit()
 
 
-# getting mysql cursor
+# getting mysql connection
 def get_dbConnection():
     # create database connection
     dbIP = "127.0.0.1"
@@ -101,8 +100,6 @@ def startDB():
 
 # restarting mysql database
 def restartDB():
-    # reset test counts to 0
-    subscriber.reset_count()
     try:
 
         # Get cursor object
@@ -171,8 +168,7 @@ def add_patient(f_name, l_name, mrn, zip_code, status):
 
 def mongo_connect():
     # Getting mongoDB setup
-    # TO DO: Add database URL
-    database_url = 'cluster0.icc7p.mongodb.net'
+    database_url = 'mongodb://deta224:reallysecurepwd@cluster0.icc7p.mongodb.net/'
     client = pymongo.MongoClient(database_url)
 
     # Connecting to the database
@@ -184,7 +180,7 @@ def mongo_connect():
     col = mydb[collection_name]
 
 
-def route_patient(zipcode, status):   
+def route_patient(zipcode, status):
     # decide which (if any) hospital to send the patient to
     assignment = 0
     # send home
@@ -193,7 +189,7 @@ def route_patient(zipcode, status):
     # send to a hospital (if 6, more strict)
     elif status == "3" or status == "5":
         # get zipcode distances
-        df = parsing_csv.getdf()
+        df = csv_parsing.getdf()
         # return closest zipcodes in ascending order with matching zipcode
         pdf = df.loc[df['zip_to']==zipcode]
         pdf = pdf.sort_values(by='distance')
@@ -204,7 +200,7 @@ def route_patient(zipcode, status):
             check_zip(zip_to, status)
     elif status == "6":
         # get zipcode distances
-        df = parsing_csv.getdf()
+        df = csv_parsing.getdf()
         # return closest zipcodes in ascending order
         pdf = df.loc[df['zip_to']==zipcode]
         pdf = pdf.sort_values(by='distance')
@@ -216,7 +212,7 @@ def route_patient(zipcode, status):
 
 
 def check_zip(zipcode, status):
-    # check hospitals in given zip_code for open beds
+    # check hospitals in zip_code for open beds
     db_hospital_cursor = get_db_hospital_cursor()
     sql_query_1 = "SELECT hospital_id FROM distance WHERE zip_code = " + zipcode
     sql_query_2 = " AND (BEDS-current_capacity) > 0"
