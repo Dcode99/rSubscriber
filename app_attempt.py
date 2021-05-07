@@ -14,7 +14,7 @@ def index():
     return 'Empty Test'
 
 
-@app.route('/api/reset')
+@app.route('/api/reset/')
 def api():
     try:
         # Connecting the to collection
@@ -30,7 +30,7 @@ def api():
     return jsonString
 
 
-@app.route('/api/getteam')
+@app.route('/api/getteam/')
 def getteam():
     status = 1
     team_info = {
@@ -42,7 +42,7 @@ def getteam():
     return jsonString
 
 
-@app.route('/api/getpatient/<mrn>')
+@app.route('/api/getpatient/<mrn>/')
 def getpatient(mrn):
     dbCursor = subscriber.DBtools.get_dbCursor()
     query = "SELECT mrn, hospital_id, " \
@@ -53,7 +53,7 @@ def getpatient(mrn):
     return jsonString
 
 
-@app.route('/api/gethospital/<hospital_id>')
+@app.route('/api/gethospital/<hospital_id>/')
 def gethospital(hospital_id):
     dbHospitalCursor = subscriber.DBtools.get_db_hospital_cursor()
     query = "SELECT max_capacity AS total_beds," \
@@ -66,35 +66,30 @@ def gethospital(hospital_id):
     return jsonString
 
 
-@app.route('/api/testcount')
+@app.route('/api/testcount/')
 def testcount():
     return_info = {
         'positive_count': str(subscriber.get_positive_count()),
         'negative_count': str(subscriber.get_negative_count())
     }
+    return return_info
 
 
-@app.route('/api/zipalertlist')
+@app.route('/api/zipalertlist/')
 def zipalertlist():
     # TODO
     return_info = {'Answer': 'Not implemented'}
     jsonString = json.dumps(return_info)
+    return jsonString
 
 
-@app.route('/api/alertlist')
+@app.route('/api/alertlist/')
 def alertlist():
     # TODO
     return_info = {'Answer': 'Not implemented'}
     jsonString = json.dumps(return_info)
+    return jsonString
 
 
 if __name__ == '__main__':
     app.run(host='127.0.0.1', port=int('9000'), debug=True)
-
-
-def get_apis():
-    return requests.get(_url('/api/'))
-
-
-def describe_api(api_id):
-    return requests.get(_url('/api/{:d}/'.format(api_id)))
