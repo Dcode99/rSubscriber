@@ -16,7 +16,8 @@ Dillon:
   implemented webserver.py to start the server (not used anymore);
   created APIhelper functions;
   set up resets and creation of mysql databases;
-  switched mongo implementation of zip code distances to use the csv file instead
+  switched mongo implementation of zip code distances to use the csv file instead;
+  moved APIs.py functionalities into app_attempt.py, flask server that works but with wrong hostname
   
   
 Nathan:
