@@ -64,9 +64,9 @@ def gethospital(hospital_id):
     return_info = dbHospitalCursor.fetchone()
     capacity = check_capacity(hospital_id)
     jsonString = {
-        'zip_code': return_info["ZIP"],
         'max_capacity': str(return_info["BEDS"]),
         'available_beds': str(return_info["BEDS"] - capacity)
+        'zip_code': return_info["ZIP"],
     }
     return jsonString
 
