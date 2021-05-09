@@ -192,6 +192,23 @@ def create_capacities():
 
 
 # check if capacity is open
+def increment_capacity(hospital_id):
+    return_info = 0
+    f = open("hospitals.txt", "r")
+    Lines = f.readlines()
+    count = 0
+    for line in Lines:
+        s_list = line.split(' ')
+        if hospital_id == s_list[0]:
+            return_info = int(s_list[1])
+            Lines[count] = return_info + 1
+        count = count + 1
+    f = open("hospitals.txt", "w")
+    f.writelines(Lines)
+    return return_info
+
+
+# check if capacity is open
 def check_capacity(hospital_id):
     f = open("hospitals.txt", "r")
     Lines = f.readlines()
