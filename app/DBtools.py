@@ -17,7 +17,7 @@ def get_db_hospital_connection():
 
     # define connection
     connection = pymysql.connect(host=dbIP, user=dbUserName, database=db, password=dbUserPassword,
-                                 charset=charSet, cursorclass=cursorType)
+                                 charset=charSet, cursorclass=cursorType, autocommit=True)
     return connection
 
 
@@ -68,7 +68,7 @@ def get_dbConnection():
 
     # define connection
     connection = pymysql.connect(host=dbIP, user=dbUserName, database=db, password=dbUserPassword,
-                                 charset=charSet, cursorclass=cursorType)
+                                 charset=charSet, cursorclass=cursorType, autocommit=True)
     return connection
 
 
@@ -160,10 +160,14 @@ def resetDB(dbCursor):
 def add_patient(f_name, l_name, mrn, zip_code, status):
     dbCursor = get_dbCursor()
     first_part = "(mrn, first_name, last_name, zip_code, patient_status_code, hospital_id)"
-    second_part = "(\"" + mrn + "\", \"" + f_name + "\", \"" + l_name + "\", " + zip_code + ", " + status + ", -1)"
-    query = "INSERT INTO patient " + first_part + " VALUES" + second_part
+    second_part = "(\'" + mrn + "\', \'" + f_name + "\', \'" + l_name + "\', " + zip_code + ", " + status + ", -1)"
+    query = "INSERT INTO patient " + first_part + " VALUES " + second_part
     dbCursor.execute(query)
-    get_dbConnection().commit()
+    # get_dbConnection().commit()
+    # test lines
+    # query = 'SELECT * from patient'
+    # return_info = run_query(query)
+    # print(return_info)
 
 
 # deleted mongo module
@@ -179,6 +183,20 @@ def add_patient(f_name, l_name, mrn, zip_code, status):
 #    # TO DO: add collection name
 #    collection_name = 'distance'
 #    col = mydb[collection_name]
+
+# use patient assignment to assign them in mysql
+def insert_assignment(f_name, l_name, assignment):
+    dbConn = get_dbConnection()
+    dbCursor = get_dbCursor()
+    query_p1 = 'INSERT INTO patient (first_name, last_name, hospital_id) values'
+    query_p2 = ' (\'' + f_name + '\',\'' + l_name + '\',\'' + str(assignment) + '\')'
+    dbCursor.execute(query_p1 + query_p2)
+    # dbConn.commit()
+    # test lines
+    # query = 'SELECT * from patient'
+    # return_info = run_query(query)
+    # print(return_info)
+
 
 # create file for hospital capacities
 def create_capacities():
@@ -287,3 +305,10 @@ def check_zip(zipcode, status):
         else:
             return -1
     return -1
+
+
+def run_query(query):
+    dbConn = get_dbConnection()
+    dbCursor = get_dbCursor()
+    dbCursor.execute(query)
+    return dbCursor.fetchall()
