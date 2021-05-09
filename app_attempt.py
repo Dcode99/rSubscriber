@@ -43,12 +43,26 @@ def getteam():
     return jsonString
 
 
+@app.route('/api/getall/')
+def getall():
+    query = 'SELECT * from patient'
+    return_info = subscriber.DBtools.run_query(query)
+    print(return_info[0])
+    jsonString = {
+        'first_name': return_info[0]['first_name']
+    }
+    subscriber.DBtools.get_dbConnection().close()
+    return jsonString
+
+
 @app.route('/api/getpatient/<mrn>/')
 def getpatient(mrn):
+    subscriber.DBtools.get_dbConnection().begin()
     dbCursor = subscriber.DBtools.get_dbCursor()
     query = "SELECT mrn, hospital_id FROM patient WHERE mrn = \"" + str(mrn) + "\""
     dbCursor.execute(query)
-    return_info = dbCursor.fetchone()
+    return_info = dbCursor.fetchall()
+    subscriber.DBtools.get_dbConnection().close()
     jsonString = json.dumps(return_info)
     return jsonString
 
@@ -56,17 +70,17 @@ def getpatient(mrn):
 @app.route('/api/gethospital/<hospital_id>/')
 def gethospital(hospital_id):
     dbHospitalCursor = subscriber.DBtools.get_db_hospital_cursor()
-    
-    query = "SELECT BEDS," \ 
+
+    query = "SELECT BEDS," \
             " ZIP FROM hospitals" \
             " WHERE ï»¿ID is " + str(hospital_id)
     dbHospitalCursor.execute(query)
     return_info = dbHospitalCursor.fetchone()
-    capacity = check_capacity(hospital_id)
+    capacity = subscriber.DBtools.check_capacity(hospital_id)
     jsonString = {
         'max_capacity': str(return_info["BEDS"]),
-        'available_beds': str(return_info["BEDS"] - capacity)
-        'zip_code': return_info["ZIP"],
+        'available_beds': str(return_info["BEDS"] - capacity),
+        'zip_code': return_info["ZIP"]
     }
     return jsonString
 
@@ -77,7 +91,6 @@ def testcount():
         'positive_count': str(subscriber.get_positive_count()),
         'negative_count': str(subscriber.get_negative_count())
     }
-    print('')
     return jsonString
 
 
@@ -97,5 +110,6 @@ def alertlist():
     return jsonString
 
 
+# correct hostname: deta224.cs.uky.edu
 if __name__ == '__main__':
-    app.run(host='127.0.0.1', port=int('9000'), debug=True)
+    app.run(host="127.0.0.1", port=9000, threaded=True, debug=True)
