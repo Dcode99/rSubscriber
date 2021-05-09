@@ -1,12 +1,5 @@
 import pymysql
 import time
-import pymongo
-import csv_parsing
-
-
-# load zip_code distances
-def load_csv():
-    df = csv_parsing.zip_distances()
 
 
 # import mysql.connector
@@ -38,22 +31,27 @@ def get_db_hospital_cursor():
 
 def startHospitalDB():
     # start mysql hospital database
+    db_hospitalConn = get_db_hospital_connection()
     dbCursor = get_db_hospital_cursor()
+    get_db_hospital_connection().ping(reconnect=True)
 
     sqlQuery = "CREATE DATABASE IF NOT EXISTS rhospitalpatients"
     dbCursor.execute(sqlQuery)
     # create a current_capacity column if needed
     # sqlQuery = "ALTER TABLE hospitals ADD COLUMN current_capacity int"
     # dbCursor.execute(sqlQuery)
-    get_db_hospital_connection().commit()
+    db_hospitalConn.commit()
 
 
 # reset current capacity of all hospitals
 def reset_hospital_db():
-    dbHospitalCursor = get_db_hospital_cursor()
-    sql_delete = "UPDATE hospitals SET current_capacity = 0"
-    dbHospitalCursor.execute(sql_delete)
-    get_db_hospital_connection().commit()
+    dbHospitalConn = get_db_hospital_connection()
+    # dbHospitalCursor = get_db_hospital_cursor()
+    dbHospitalConn.ping(reconnect=True)
+    # sql_delete = "UPDATE hospitals SET current_capacity = 0 WHERE current_capacity is NULL"
+    # sql_delete = "ISNULL(current_capacity, 0) FROM hospitals"
+    # dbHospitalCursor.execute(sql_delete)
+    # dbHospitalConn.commit()
 
 
 # getting mysql connection
@@ -84,6 +82,8 @@ def get_dbCursor():
 
 def startDB():
     dbCursor = get_dbCursor()
+    dbConn = get_dbConnection()
+    dbConn.ping(reconnect=True)
 
     sqlQuery = "CREATE DATABASE IF NOT EXISTS patients"
     dbCursor.execute(sqlQuery)
@@ -95,7 +95,7 @@ def startDB():
                "patient_status_code int, " \
                "hospital_id int)"
     dbCursor.execute(sqlQuery)
-    get_dbConnection().commit()
+    dbConn.commit()
 
 
 # restarting mysql database
@@ -166,74 +166,107 @@ def add_patient(f_name, l_name, mrn, zip_code, status):
     get_dbConnection().commit()
 
 
-def mongo_connect():
-    # Getting mongoDB setup
-    database_url = 'mongodb://deta224:reallysecurepwd@cluster0.icc7p.mongodb.net/'
-    client = pymongo.MongoClient(database_url)
+# deleted mongo module
+# def mongo_connect():
+#    # Getting mongoDB setup
+#    database_url = 'mongodb://deta224:reallysecurepwd@cluster0.icc7p.mongodb.net/'
+#    client = pymongo.MongoClient(database_url)
+#
+#    # Connecting to the database
+#    mydb = client['hospitaldistances']
+#
+#    # Connecting the to collection
+#    # TO DO: add collection name
+#    collection_name = 'distance'
+#    col = mydb[collection_name]
 
-    # Connecting to the database
-    mydb = client['hospitaldistances']
+# create file for hospital capacities
+def create_capacities():
+    db_hospital_cursor = get_db_hospital_cursor()
+    db_hospital_cursor.execute('SELECT ï»¿ID from hospitals')
+    results = db_hospital_cursor.fetchall()
+    f = open("hospitals.txt", "w")
+    for row in results:
+        f.writelines(str(row['ï»¿ID']) + ' 0\n')
+    f.close()
 
-    # Connecting the to collection
-    # TO DO: add collection name
-    collection_name = 'distance'
-    col = mydb[collection_name]
+
+# check if capacity is open
+def check_capacity(hospital_id):
+    f = open("hospitals.txt", "r")
+    Lines = f.readlines()
+    for line in Lines:
+        s_list = line.split(' ')
+        if hospital_id == s_list[0]:
+            return int(s_list[1])
+    return 0
 
 
-def route_patient(zipcode, status):
+def route_patient(zipcode, status, dataframe):
     # decide which (if any) hospital to send the patient to
-    assignment = 0
+    assignment = -1
     # send home
     if status == "1" or status == "2" or status == "3" or status == "4":
-        return assignment
+        assignment = 0
     # send to a hospital (if 6, more strict)
     elif status == "3" or status == "5":
-        # get zipcode distances
-        df = csv_parsing.getdf()
         # return closest zipcodes in ascending order with matching zipcode
-        pdf = df.loc[df['zip_to']==zipcode]
+        # actual partial data frame
+        pdf = dataframe.loc[lambda df1: df1['zip_from'] == int(zipcode)]
+        # testing partial data frame
+        # pdf = dataframe.loc[lambda df1: df1['zip_from'] == 40003]
         pdf = pdf.sort_values(by='distance')
-        for payload in pdf:
-            zip_to = payload['zip_to']
+        for index, row in pdf.iterrows():
+            zip_to = int(row['zip_to'])
             # test print
             # print(zip_to)
-            check_zip(zip_to, status)
+            assignment = check_zip(zip_to, status)
+            if assignment != -1:
+                break
     elif status == "6":
-        # get zipcode distances
-        df = csv_parsing.getdf()
         # return closest zipcodes in ascending order
-        pdf = df.loc[df['zip_to']==zipcode]
+        pdf = dataframe.loc[lambda df1: df1['zip_from'] == int(zipcode)]
         pdf = pdf.sort_values(by='distance')
-        for payload in pdf:
-            zip_to = payload['zip_to']
+        for index, row in pdf.iterrows():
+            zip_to = int(row['zip_to'])
             # test print
             # print(zip_to)
-            check_zip(zip_to, status)
+            assignment = int(check_zip(zip_to, status))
+            if assignment != -1:
+                break
+    return assignment
 
 
 def check_zip(zipcode, status):
     # check hospitals in zip_code for open beds
     db_hospital_cursor = get_db_hospital_cursor()
-    sql_query_1 = "SELECT hospital_id FROM distance WHERE zip_code = " + zipcode
-    sql_query_2 = " AND (BEDS-current_capacity) > 0"
+    sql_query_1 = "SELECT BEDS,ï»¿ID as hospital_id FROM hospitals WHERE ZIP = " + str(zipcode)
     sql_optional = " AND trauma != \"Not Available\""
+
+    # test print
+    # if db_hospital_cursor.execute("SELECT ï»¿ID FROM hospitals WHERE ZIP = " + str(zipcode)) != 0:
+    #    result = db_hospital_cursor.fetchone()
+    #    print(result)
     if status == "6":
-        sql_rows = db_hospital_cursor.execute(sql_query_1 + sql_query_2 + sql_optional)
+        if db_hospital_cursor.execute(sql_query_1) != 0:
+            sql_response = db_hospital_cursor.fetchall()
+            # print(sql_response)
+            for row in sql_response:
+                capacity = check_capacity(row['hospital_id'])
+                if int(capacity) < int(row['BEDS']):
+                    return row['hospital_id']
         # if empty, return -1
-        if sql_rows == 0:
-            return -1
-        # otherwise return hospital_id to send patient
         else:
-            sql_response = db_hospital_cursor.fetchone()
-            print(sql_response)
-            return sql_response['_id']
+            return -1
     else:
-        sql_rows = db_hospital_cursor.execute(sql_query_1 + sql_query_2)
+        if db_hospital_cursor.execute(sql_query_1) != 0:
+            sql_response = db_hospital_cursor.fetchall()
+            # print(sql_response)
+            for row in sql_response:
+                capacity = check_capacity(row['hospital_id'])
+                if int(capacity) < int(row['BEDS']):
+                    return row['hospital_id']
         # if empty, return -1
-        if sql_rows == 0:
-            return -1
-        # otherwise return hospital_id to send patient
         else:
-            sql_response = db_hospital_cursor.fetchone()
-            print(sql_response)
-            return sql_response['_id']
+            return -1
+    return -1
