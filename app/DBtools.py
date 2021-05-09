@@ -201,7 +201,7 @@ def increment_capacity(hospital_id):
         s_list = line.split(' ')
         if hospital_id == s_list[0]:
             return_info = int(s_list[1])
-            Lines[count] = return_info + 1
+            Lines[count] = hospital_id + ' ' + str(return_info + 1)
         count = count + 1
     f = open("hospitals.txt", "w")
     f.writelines(Lines)
