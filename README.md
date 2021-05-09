@@ -9,6 +9,7 @@ Both:
   Imported CSV files to database websites;
   Meet together to go over code and discuss planning
   
+  
 Dillon:
   Created github repositories to share files;
   implemented APIs.py to handle web requests including getteam, testcount, reset, gethospital;
@@ -17,7 +18,10 @@ Dillon:
   created APIhelper functions;
   set up resets and creation of mysql databases;
   switched mongo implementation of zip code distances to use the csv file instead;
-  moved APIs.py functionalities into app_attempt.py, flask server that works but with wrong hostname
+  moved APIs.py functionalities into app_attempt.py, flask server that works but with wrong hostname;
+  debugging and testing for getteam and testcount;
+  formatting current capacities of hospitals as a txt file;
+  helper functions for capacities
   
   
 Nathan:
