@@ -56,13 +56,18 @@ def getpatient(mrn):
 @app.route('/api/gethospital/<hospital_id>/')
 def gethospital(hospital_id):
     dbHospitalCursor = subscriber.DBtools.get_db_hospital_cursor()
-    query = "SELECT max_capacity AS total_beds," \
-            " (max_capacity-current_capacity) AS available_beds," \
-            " zip_code FROM hospitals" \
-            " WHERE hospital_id is " + str(hospital_id)
+    
+    query = "SELECT BEDS," \ 
+            " ZIP FROM hospitals" \
+            " WHERE ï»¿ID is " + str(hospital_id)
     dbHospitalCursor.execute(query)
     return_info = dbHospitalCursor.fetchone()
-    jsonString = json.dumps(return_info)
+    capacity = check_capacity(hospital_id)
+    jsonString = {
+        'zip_code': return_info["ZIP"],
+        'max_capacity': str(return_info["BEDS"]),
+        'available_beds': str(return_info["BEDS"] - capacity)
+    }
     return jsonString
 
 
