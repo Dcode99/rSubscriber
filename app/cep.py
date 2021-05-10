@@ -32,7 +32,7 @@ inputHandler = patientRuntime.getInputHandler("PatientStream")
 #Start event processing
 patientRuntime.start()
 
-inputHandler.send("Nathan", "Arnold", 1, 40508, 6)
+inputHandler.send("Nathan", "Arnold", 1, 40000, 6)
 
 #shut down when all event processing is finished
 siddhiManager.shutdown()
