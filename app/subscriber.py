@@ -53,6 +53,7 @@ if __name__ == '__main__':
     DBtools.restartDB()
     DBtools.startHospitalDB()
     DBtools.reset_hospital_db()
+    DBtools.create_capacities()
     reset_count()
 
 
@@ -107,8 +108,6 @@ def callback(ch, method, properties, body):
     print(" [x] %r:%r" % (method.routing_key, body))
     # read in csv
     df = csv_parsing.Distances().getdf()
-    # assign hospital capacities
-    DBtools.create_capacities()
     # editing to get to utf-8
     body_str = body.decode('utf-8')
     data = json.loads(body_str)
