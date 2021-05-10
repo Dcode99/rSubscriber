@@ -21,7 +21,8 @@ Dillon:
   moved APIs.py functionalities into app_attempt.py, flask server that works but with wrong hostname;
   debugging and testing for getteam and testcount;
   formatting current capacities of hospitals as a txt file;
-  helper functions for capacities
+  helper functions for capacities;
+  tested for working locally: testcount, getteam, getpatient, gethospital, 
   
   
 Nathan:
