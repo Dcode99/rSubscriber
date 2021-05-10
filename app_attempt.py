@@ -73,7 +73,7 @@ def gethospital(hospital_id):
 
     query = "SELECT BEDS," \
             " ZIP FROM hospitals" \
-            " WHERE ï»¿ID is " + str(hospital_id)
+            " WHERE ï»¿ID = " + str(hospital_id)
     dbHospitalCursor.execute(query)
     return_info = dbHospitalCursor.fetchone()
     capacity = subscriber.DBtools.check_capacity(hospital_id)
@@ -112,4 +112,4 @@ def alertlist():
 
 # correct hostname: deta224.cs.uky.edu
 if __name__ == '__main__':
-    app.run(host="127.0.0.1", port=9000, threaded=True, debug=True)
+    app.run(host="0.0.0.0", port=9000, threaded=True, debug=True)
