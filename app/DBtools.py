@@ -30,17 +30,19 @@ def get_db_hospital_cursor():
 
 
 def startHospitalDB():
-    # start mysql hospital database
-    db_hospitalConn = get_db_hospital_connection()
     dbCursor = get_db_hospital_cursor()
-    get_db_hospital_connection().ping(reconnect=True)
 
     sqlQuery = "CREATE DATABASE IF NOT EXISTS rhospitalpatients"
     dbCursor.execute(sqlQuery)
-    # create a current_capacity column if needed
-    # sqlQuery = "ALTER TABLE hospitals ADD COLUMN current_capacity int"
-    # dbCursor.execute(sqlQuery)
-    db_hospitalConn.commit()
+    dbConn = get_db_hospital_connection()
+    dbConn.ping(reconnect=True)
+    # create a patient table
+    sqlQuery = "CREATE TABLE IF NOT EXISTS hospitals (ï»¿ID varchar(63), " \
+               "BEDS int, " \
+               "ZIP int, " \
+               "TRAUMA varchar(63)) "
+    dbCursor.execute(sqlQuery)
+    dbConn.commit()
 
 
 # reset current capacity of all hospitals
@@ -48,10 +50,9 @@ def reset_hospital_db():
     dbHospitalConn = get_db_hospital_connection()
     # dbHospitalCursor = get_db_hospital_cursor()
     dbHospitalConn.ping(reconnect=True)
-    # sql_delete = "UPDATE hospitals SET current_capacity = 0 WHERE current_capacity is NULL"
-    # sql_delete = "ISNULL(current_capacity, 0) FROM hospitals"
-    # dbHospitalCursor.execute(sql_delete)
-    # dbHospitalConn.commit()
+    # sql_delete = "DROP DATABASE rhospitalpatients"
+    # get_db_hospital_cursor().execute(sql_delete)
+    # startHospitalDB()
 
 
 # getting mysql connection
