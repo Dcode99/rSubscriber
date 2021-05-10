@@ -19,6 +19,9 @@ def reset():
     try:
         # Connecting the to collection
         dbCursor = subscriber.DBtools.restartDB()
+        # assign hospital capacities
+        subscriber.DBtools.create_capacities()
+        # reset test counts
         subscriber.reset_count()
         return_info = {
             'reset_status_code': 1
@@ -71,9 +74,7 @@ def getpatient(mrn):
 def gethospital(hospital_id):
     dbHospitalCursor = subscriber.DBtools.get_db_hospital_cursor()
 
-    query = "SELECT BEDS," \
-            " ZIP FROM hospitals" \
-            " WHERE ï»¿ID = " + str(hospital_id)
+    query = "SELECT BEDS, ZIP FROM hospitals WHERE ï»¿ID = " + str(hospital_id)
     dbHospitalCursor.execute(query)
     return_info = dbHospitalCursor.fetchone()
     capacity = subscriber.DBtools.check_capacity(hospital_id)
