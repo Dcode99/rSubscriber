@@ -28,7 +28,10 @@ Dillon:
 Nathan:
   Wrote interactions with MongoDB server (deprecated); 
   Set up web server using Flask; 
-  Tested web server and integrated with existing project
+  Tested web server and integrated with existing project;
+  Troubleshooting/debugging DBtools.py;
+  Implemented API for hospital patient numbers;
+  Implemented complex event processing (as far as it exists) for statewide and zip code alerts
 
 
 Project design:
@@ -44,10 +47,8 @@ Project design:
   
   atlas: reallysecurepwd
   
-  We planned to use a complex event processor (PySiddhi) to handle the event streams containing patient records.
-  This CEP would be able to detect activity over time intervals to determine if there is an alert state. It would be used to handle the real time reporting APIs.
-  
-  We did not get the chance to implement this yet, we have been having difficulties on other parts and PySiddhi did not seem to be a viable choice like we expected to use.
+  We attempt to use a complex event processor (PySiddhi) to handle the event streams containing patient records.
+  This CEP, found in app/cep.py, would be able to detect activity over time intervals to determine if there is an alert state, on both a zip code and statewide level. It would be used to handle the real time reporting APIs. Issues with the PySiddhi library prevented us from being able to test the correctness of the queries or running the database concurrently with the rest of our code.
   
   MySQL (PyMYSQL): A relational database will be used to keep track of hospital capacity and patient status. This was chosen for familiarity and ease of use due to extensive documentation, and because it was a language we could use to query specific information with sorting.
   
