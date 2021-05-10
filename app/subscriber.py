@@ -3,6 +3,7 @@ import pika
 import sys
 import json
 import DBtools
+import csv_parsing
 
 
 def increment_positive():
@@ -47,11 +48,13 @@ def reset_count():
     f.close()
 
 
-DBtools.startDB()
-DBtools.restartDB()
-DBtools.startHospitalDB()
-DBtools.reset_hospital_db()
-reset_count()
+if __name__ == '__main__':
+    DBtools.startDB()
+    DBtools.restartDB()
+    DBtools.startHospitalDB()
+    DBtools.reset_hospital_db()
+    DBtools.create_capacities()
+    reset_count()
 
 
 def case_count(status):
@@ -103,10 +106,11 @@ print(' [*] Waiting for logs. To exit press CTRL+C')
 
 def callback(ch, method, properties, body):
     print(" [x] %r:%r" % (method.routing_key, body))
+    # read in csv
+    df = csv_parsing.Distances().getdf()
     # editing to get to utf-8
     body_str = body.decode('utf-8')
     data = json.loads(body_str)
-
     # split payloads
     for payload in data:
         f_name = payload['first_name']
@@ -122,7 +126,10 @@ def callback(ch, method, properties, body):
 
         # find closest open hospital, if needed. increment beds occupied
         # CODE NEEDED
-        DBtools.route_patient(zipcode, patient_status)
+        # return the patient location they need to go to
+        assignment = DBtools.route_patient(zipcode, patient_status, df)
+        # print(assignment)
+        DBtools.insert_assignment(f_name, l_name, assignment)
 
 
 if __name__ == '__main__':
