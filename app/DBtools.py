@@ -205,24 +205,27 @@ def create_capacities():
     results = db_hospital_cursor.fetchall()
     f = open("hospitals.txt", "w")
     for row in results:
-        f.writelines(str(row['ï»¿ID']) + ' 0\n')
+        f.writelines(str(row['ï»¿ID']) + ' 0 \n')
     f.close()
 
 
 # check if capacity is open
 def increment_capacity(hospital_id):
-    return_info = 0
+    return_info = -1
     f = open("hospitals.txt", "r")
     Lines = f.readlines()
     count = 0
     for line in Lines:
         s_list = line.split(' ')
-        if hospital_id == s_list[0]:
+        if str(hospital_id) == str(s_list[0]):
             return_info = int(s_list[1])
-            Lines[count] = hospital_id + ' ' + str(return_info + 1)
+            Lines[count] = str(s_list[0]) + ' ' + str(return_info + 1) + ' \n'
         count = count + 1
     f = open("hospitals.txt", "w")
     f.writelines(Lines)
+    f.close()
+    # Test print
+    # print(str(hospital_id) + " should be " + str(return_info+1))
     return return_info
 
 
@@ -287,7 +290,7 @@ def check_zip(zipcode, status):
             sql_response = db_hospital_cursor.fetchall()
             # print(sql_response)
             for row in sql_response:
-                capacity = check_capacity(row['hospital_id'])
+                capacity = increment_capacity(row['hospital_id'])
                 if int(capacity) < int(row['BEDS']):
                     return row['hospital_id']
         # if empty, return -1
@@ -298,7 +301,7 @@ def check_zip(zipcode, status):
             sql_response = db_hospital_cursor.fetchall()
             # print(sql_response)
             for row in sql_response:
-                capacity = check_capacity(row['hospital_id'])
+                capacity = increment_capacity(row['hospital_id'])
                 if int(capacity) < int(row['BEDS']):
                     return row['hospital_id']
         # if empty, return -1
