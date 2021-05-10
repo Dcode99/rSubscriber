@@ -54,6 +54,7 @@ if __name__ == '__main__':
     DBtools.startHospitalDB()
     DBtools.reset_hospital_db()
     DBtools.create_capacities()
+    csv_parsing.read_hospitals()
     reset_count()
 
 
@@ -125,7 +126,6 @@ def callback(ch, method, properties, body):
         DBtools.add_patient(f_name, l_name, mrn, zipcode, patient_status)
 
         # find closest open hospital, if needed. increment beds occupied
-        # CODE NEEDED
         # return the patient location they need to go to
         assignment = DBtools.route_patient(zipcode, patient_status, df)
         # print(assignment)
